@@ -1,0 +1,190 @@
+---
+title: "KM Example"
+author: "Tynan"
+date: "2022-11-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(datapasta)
+library(tidyverse)
+```
+
+## R Markdown
+
+```{r cohorts}
+raw_cohorts <- 
+data.frame(
+  cohort_weeks = c("2022_01","2022_02","2022_03","2022_04","2022_05",
+           "2022_06","2022_07","2022_08"),
+  `0` = c(10L, 7L, 6L, 8L, 5L, 6L, 9L, 12L),
+  `1` = c(13.5336803444744,11.7607912874148,10.5049402669358,
+            14.8845250910686,9.59558064790279,9.89063169460448,
+            14.6800813945357,19.316444002922),
+  `2` = c(22.0640147288579,18.6409704903589,13.1825089684384,
+            19.2154908731486,15.1133946737572,14.9164283030608,
+            19.3638628180455,NA),
+  `3` = c(25.2497146174837,25.78153316628,20.2164558670387,
+            27.6667436161011,22.3320030452584,17.7675785699256,NA,NA),
+  `4` = c(31.8276223772821,32.8478687935309,27.2566590232529,
+            41.4710932048965,32.0497393248151,NA,NA,NA),
+  `5` = c(38.1025615420786,36.3549691259238,33.3930322959798,
+            51.0119158893576,NA,NA,NA,NA),
+  `6` = c(43.2539665137488,40.4860408447601,42.4807268195285,
+            NA,NA,NA,NA,NA),
+  `7` = c(52.2081944480025, 44.3621559834201, NA, NA, NA, NA, NA, NA)
+  )  
+```
+
+```{r CHECK_age}
+# cohorts %>% pull(age) %>% unique()
+```
+
+```{r CHECK_date_num}
+cohorts %>% 
+   distinct(install_cohort) %>% 
+   mutate(date_num = dplyr::row_number()) 
+```
+
+```{r dataprep}
+cohorts <- 
+  raw_cohorts %>% 
+    rename(install_cohort = cohort_weeks) %>% 
+    pivot_longer(!install_cohort, names_to = "age", values_to = "cumsum_revenue") %>% 
+    mutate(age            = str_remove(age, "^X"), # remove leading X values added in datapasta copy/paste 
+           age            = as.numeric(age), 
+           install_cohort = factor(install_cohort,
+                                     levels = c('2022_01', '2022_02', '2022_03', '2022_04', '2022_05', '2022_06',
+                                                '2022_07', '2022_08', '2022_09', '2022_10','2022_11', '2022_12',
+                                                '2022_13', '2022_14', '2022_15', '2022_16', '2022_17', '2022_18',
+                                                '2022_19', '2022_20','2022_21')
+                                           , ordered = TRUE)) 
+  # filter(install_cohort %in% c('2022_01', '2022_02'))
+```
+
+```{r}
+cohorts %>% 
+  ggplot() + 
+  aes(x = age, y = cumsum_revenue, color = install_cohort) + 
+  geom_line()
+```
+
+```{r age_and_data_num_data}
+age_and_data_num_data <-
+  cohorts %>% 
+    left_join( cohorts %>% 
+                 distinct(install_cohort) %>% 
+                 mutate(date_num = dplyr::row_number()) 
+               , by = c("install_cohort")) %>%   
+    dplyr::select(install_cohort, date_num, age, cumsum_revenue) %>% 
+    group_by(age, date_num) %>%  
+    arrange(age, date_num) %>%     
+    summarise(cumsum_revenue = max(cumsum_revenue), .groups = 'drop') %>% # de-dupe 
+    # ungroup() %>% 
+    mutate(age = as.numeric(age)) %>% 
+    filter(!is.na(cumsum_revenue)) %>% 
+    group_by(age) %>% 
+    mutate(cumsum_revenue   = order_by(date_num, cumsum(cumsum_revenue)), # cumsum by age 
+           penultimate_date_num = max(date_num) - 1,
+           age_prior            = if_else(age > 0, age - 1, as.double(NA))) %>% 
+    ungroup() 
+    # select(age, age_prior, date_num, penultimate_date_num, cumsum_revenue)
+```
+
+```{r}
+KM_Multiplier_etc_data <- 
+    age_and_data_num_data %>% 
+      group_by(age) %>% 
+      # join to same date_num (eg row_number by install_date) AND join current age to prior age  
+      # this provides inputs for KM_Multiplier  = cumsum_net_revenue / prior_cumsum_net_revenue 
+      # NOTE: this removes the age 0 most recent (eg largest value) date_num cohort 
+      inner_join(., age_and_data_num_data,
+                 by = c("date_num" = "date_num", 
+                        "age_prior" = "age")) %>% 
+      filter(date_num == penultimate_date_num.y) %>% 
+      dplyr::select(age, date_num, cumsum_revenue.x, cumsum_revenue.y) %>% 
+      rename(cumsum_revenue       = cumsum_revenue.x,
+             prior_cumsum_revenue = cumsum_revenue.y) %>% 
+      # add in the age 0 most recent date_num cohort, it does not have a multiplier 
+      bind_rows(age_and_data_num_data %>% 
+                  summarise(max_date_num          = max(date_num)) %>% 
+                  mutate(age                      = c(0), # age increments from 1, 
+                         cumsum_revenue       = c(as.double(NA)),
+                         prior_cumsum_revenue = c(as.double(NA))) %>% 
+                  rename(date_num = max_date_num) %>% 
+                  dplyr::select(age, date_num, cumsum_revenue, prior_cumsum_revenue)
+                  ) %>% 
+      arrange(age) %>% 
+      ungroup() %>% 
+      mutate(KM_Multiplier  = cumsum_revenue / prior_cumsum_revenue) %>% 
+      filter(age <= 52) %>% 
+      dplyr::select(-date_num) 
+```
+
+```{r}
+KM_Multiplier_etc_data %>% head()
+```
+
+```{r}
+cumsum_additive_growth_rate_TBL <-
+    KM_Multiplier_etc_data %>%   
+      filter(age > 0) %>% 
+      dplyr::select(age, KM_Multiplier) %>%   
+      rename(day_to_day_multiplier = KM_Multiplier) %>% 
+      mutate(additive_growth_rate        = log(day_to_day_multiplier),
+             cumsum_additive_growth_rate = order_by(age, cumsum(additive_growth_rate))) %>% # print(n=100)
+      filter(age <= 52) 
+
+cumsum_additive_growth_rate_TBL
+```
+
+```{r}
+data_to_loop <- 
+    cohorts %>% 
+    distinct(age) %>% 
+    bind_cols(., 
+              cohorts %>% 
+                filter(age == 0) %>%
+                summarise(avg_cumsum_revenue = mean(cumsum_revenue))) %>% 
+    mutate(avg_cumsum_revenue = if_else(age > 0 , 0, avg_cumsum_revenue)) %>% 
+    left_join(., 
+              cumsum_additive_growth_rate_TBL %>% dplyr::select( age, day_to_day_multiplier), 
+              by = 'age') %>% 
+    relocate(day_to_day_multiplier, .after = age) %>% 
+    mutate(avg_cumsum_revenue = ifelse(avg_cumsum_revenue == 0, NA, avg_cumsum_revenue))
+
+ages <- data_to_loop %>% pull(age)
+
+for (age in ages) {
+  
+    data_to_loop <- data_to_loop %>%
+                      mutate(prior = lag(avg_cumsum_revenue),
+                             avg_cumsum_revenue = if_else( is.na(prior), avg_cumsum_revenue, prior * day_to_day_multiplier))
+}
+
+data_to_loop <- data_to_loop %>% select(age, avg_cumsum_revenue)
+data_to_loop
+```
+
+
+```{r}
+# cumsum_additive_growth_rate_TBL %>% 
+#       ggplot() + 
+#       aes(x = age, y = day_to_day_multiplier, color = day_to_day_multiplier) + 
+#       geom_line() 
+```
+
+```{r}
+df <- crossing(data_to_loop, data.frame(c(1:8)) %>% rename(num = 1)) %>% select(-num)
+
+cohorts %>% 
+  ggplot() + 
+  aes(x = age, y = cumsum_revenue, color = install_cohort) + 
+  geom_line() + 
+  geom_line(data = df, aes(x=age, y =avg_cumsum_revenue), color = "red")
+```
+
+
+
+

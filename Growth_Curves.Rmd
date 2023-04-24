@@ -1,0 +1,161 @@
+---
+title: "Growth_Curves"
+author: "Tynan"
+date: "2023-04-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Growth Curves 
+
+```{r}
+# x <- c(0, 20, 28, 36, 42, 50, 58, 63, 71, 79, 85, 92, 99, 106, 112)
+# y <- c(0, 15, 35, 55, 62, 74, 80, 96, 127, 120, 146, 160, 177, 165)
+
+x <- seq(from = 1, to = 113, by = 2) 
+
+gFun <- function(x){
+ a <- 88.8
+ b <- 11.7
+ x0 <- 15.1
+ est <- a*exp(-exp(-(x-x0)/b))
+  return(est)
+}
+
+nSim <- 10
+
+simData <- data.frame(x=c(0, rep(x[-1], each=nSim)) ) # x[-1] removes 0 from simulation
+
+simData$y <- gFun(simData$x) + rnorm(n=nrow(simData), sd=4)
+
+ggplot(simData, aes(x=x, y=y) ) +
+ geom_point(alpha=0.4) +
+ stat_function(fun=gFun, colour="blue") +
+ scale_x_continuous(limits=c(0, max(x)) ) +
+ theme_bw()
+```
+
+```{r}
+x <- seq(from = 1, to = 113, by = 2) 
+
+gFun <- function(x){
+ a <- 88.8
+ b <- 31.7
+ x0 <- 45.1
+ est <- a*exp(-exp(-(x-x0)/b))
+  return(est)
+}
+
+nSim <- 10
+
+simData <- data.frame(x=c(0, rep(x[-1], each=nSim)) ) # x[-1] removes 0 from simulation
+simData$y <- gFun(simData$x) + rnorm(n=nrow(simData), sd=4)
+
+ggplot(simData, aes(x=x, y=y) ) +
+ geom_point(alpha=0.4) +
+ stat_function(fun=gFun, colour="blue") +
+ scale_x_continuous(limits=c(0, max(x)) ) +
+ theme_bw()
+```
+
+```{r}
+simData_test <- 
+  simData %>% 
+    group_by(x) %>%
+    rename(calendar_month = x) %>% 
+    mutate(cohort_month = month.name[row_number()]) %>% 
+    group_by(cohort_month) %>%
+    arrange(cohort_month, calendar_month) %>% 
+    mutate(prior_y      = lag(y),
+           test         = if_else(y <= prior_y, (prior_y * 0.1) + prior_y, y)
+           ) %>% 
+  filter(cohort_month == 'January')
+
+simData_test %>% 
+  ggplot() + 
+  aes(x = calendar_month, y = test, color = cohort_month) + 
+  geom_line() 
+  # facet_wrap(~ cohort)
+```
+
+```{r}
+# weibul_neg <- -dweibull(x, shape=1, scale = 0.7)
+# curve(dweibull(x, shape=1, scale = 0.7), from=1, to=15)
+
+x_dweibull <- seq(1, 30, by = 1) 
+y_dweibull <- dweibull(x_dweibull, shape = 1.5, scale = 49) * 100000
+y_dweibull
+plot(y_dweibull)  
+
+# for(i in 1:10) {         
+#   x1 <- i^2
+#   print(x1) 
+# }
+
+```
+
+
+```{r}
+# Asym + (R0-Asym) * exp(-exp(lrc)* x)
+
+x <- seq(from = 1, to = 113, by = 2) 
+
+nSim <- 10
+
+simData <- data.frame(x=c(0, rep(x[-1], each=nSim)) ) # x[-1] removes 0 from simulation
+
+weiFun <- function(x){
+  Asym   <- self_start_params %>% filter(names == 'Asym') %>% pull(params)
+  resp0  <- self_start_params %>% filter(names == 'resp0') %>% pull(params)
+  lrc    <- self_start_params %>% filter(names == 'lrc') %>% pull(params)
+  est <- Asym + (resp0-Asym) * exp(-exp(lrc)* x)
+  return(est)
+}
+
+# self_start_params <- getInitial(y ~ SSasymp(x, Asym, resp0, lrc), data = simData)
+
+simData$y <- weiFun(simData$x) + rnorm(n=nrow(simData), sd=4)
+
+
+
+self_start_params <- bind_cols(as.data.frame(attributes(self_start_params)), 
+                               as.data.frame(self_start_params)) 
+
+attributes(self_start_params) # check 
+
+rownames(self_start_params) <- NULL 
+
+self_start_params <- self_start_params %>% rename(. , params = self_start_params)
+
+asymp_lns <- nls(y ~ SSasymp( x
+                             , Asym = 95
+                             , R0 = 1
+                             , lrc = -3.164722
+                             ),
+                    data = simData)
+
+asymp_lns <- nls(y ~ SSasymp( x
+                             , Asym <- self_start_params %>% filter(names == 'Asym') %>% pull(params)
+                             , resp0 <- self_start_params %>% filter(names == 'resp0') %>% pull(params)
+                             , lrc <- self_start_params %>% filter(names == 'lrc') %>% pull(params)
+                             ),
+                    data = simData)
+# 
+# summary(asymp_lns)
+# 
+# Lob.329 %>% 
+#   ggplot(., aes(x=age, y=height)) +
+#   geom_point()
+
+# test <- 
+simData %>% 
+  ggplot(., aes(x=x, y=y) ) +
+   geom_point(alpha=0.4) +
+   stat_function(fun=gFun, colour="blue") +
+   stat_function(fun=weiFun, colour="orange") +
+   scale_x_continuous(limits=c(0, max(x)) ) +
+   theme_bw()
+```
