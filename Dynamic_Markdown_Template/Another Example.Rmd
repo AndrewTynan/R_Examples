@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This is a test to write an .Rmd file. 
 
-Our message is: It's helpful to automate custom reporting!
+Our message is: We can easily add other content dynamically!
 
 ```{r cars}
 summary(cars)

@@ -60,21 +60,20 @@ summary(cars)
 # load the function
 source("Rmarkdown_template.R")
 
-Rmarkdown_template(title  = 'A Basic Example with mtcars', 
-                   message = "It's helpful to automate custom reporting!", 
-                   filename = 'A Basic Example') 
-```
-
-  * Now we can render the files to HTML
+Rmd_to_render <- c('A Basic Example', 'Another Example')
+messages      <- c("It's helpful to automate custom reporting!", 'We can easily add other content dynamically!') 
+num           <- 1
   
-```{r Render_to_HTML}
-
-Rmd_to_render <- c('A Basic Example')
-
 for (file in Rmd_to_render) {
   
+  Rmarkdown_template(title  = 'A Basic Example with mtcars',
+                   message  = messages[num], 
+                   filename = file)
+
   rmarkdown::render(input       = paste0(file, '.Rmd'),
                     output_file = paste0(file, '.html'))
+ 
+ num <- num + 1 
   
 }
 ```

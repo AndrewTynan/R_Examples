@@ -4,7 +4,7 @@ Rmarkdown_template <- function(title, message, filename) {
   today <- format(Sys.time(), "%B %d, %Y")
   
   file_str <- paste("---
-title: 'blah'
+title: ", title,"
 author: 'name'
 date: ", today,"
 output: html_document
