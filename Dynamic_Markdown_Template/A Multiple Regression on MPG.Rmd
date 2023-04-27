@@ -12,9 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 First we regress all other variales on mpg.
 
 ```{r cars}
-input<-mtcars
-input$am <- as.factor(input$am)
-levels(input$am) <-c('AT', 'MT')
+input            <- mtcars
+input$am         <- as.factor(input$am)
+levels(input$am) <- c('AT', 'MT')
 
 fit <- fit_all<-lm(mpg~.,data=input)
 summary(fit)

@@ -9,12 +9,12 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Now regress am on mpg.
+Now regress AM on MPG
 
 ```{r cars}
-input<-mtcars
-input$am <- as.factor(input$am)
-levels(input$am) <-c('AT', 'MT')
+input            <- mtcars
+input$am         <- as.factor(input$am)
+levels(input$am) <- c('AT', 'MT')
 
 fit <- lm(mpg~am,data=input)
 summary(fit)

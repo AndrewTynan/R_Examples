@@ -358,9 +358,9 @@ display: none;
 
 
 <p>First we regress all other variales on mpg.</p>
-<pre class="r"><code>input&lt;-mtcars
-input$am &lt;- as.factor(input$am)
-levels(input$am) &lt;-c(&#39;AT&#39;, &#39;MT&#39;)
+<pre class="r"><code>input            &lt;- mtcars
+input$am         &lt;- as.factor(input$am)
+levels(input$am) &lt;- c(&#39;AT&#39;, &#39;MT&#39;)
 
 fit &lt;- fit_all&lt;-lm(mpg~.,data=input)
 summary(fit)</code></pre>

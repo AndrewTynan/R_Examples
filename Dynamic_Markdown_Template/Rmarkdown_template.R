@@ -17,9 +17,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ", message,"
 
 ```{r cars}
-input<-mtcars
-input$am <- as.factor(input$am)
-levels(input$am) <-c('AT', 'MT')
+input            <- mtcars
+input$am         <- as.factor(input$am)
+levels(input$am) <- c('AT', 'MT')
 
 fit <- ", model,"
 summary(fit)

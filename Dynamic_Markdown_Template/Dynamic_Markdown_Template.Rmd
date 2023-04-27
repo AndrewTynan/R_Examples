@@ -30,7 +30,7 @@ source("Rmarkdown_template.R")
 
 Rmd_to_render <- c('A Multiple Regression on MPG', 'Regress am on mpg')
 models        <- c('fit_all<-lm(mpg~.,data=input)', 'lm(mpg~am,data=input)')
-messages      <- c("First we regress all other variales on mpg.", 'Now regress am on mpg.') 
+messages      <- c("First we regress all other variales on mpg.", 'Now regress AM on MPG') 
 num           <- 1
 
 for (file in Rmd_to_render) {
