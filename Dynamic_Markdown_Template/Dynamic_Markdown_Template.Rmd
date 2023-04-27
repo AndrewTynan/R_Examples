@@ -1,0 +1,83 @@
+---
+title: "Dynamic Markdown Template"
+author: "Tynan"
+date: "2023-04-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Programmatic Markdown
+
+Here is an example of automating reporting using Markdown templates. 
+
+When making many models or doing some similar task it's nice to be able to write the outputs to an indiividual RMarkdown rather than report them all in one place. 
+
+This makes the reporting more accessible. For example, someone can be given the report that pertains to either project rather than need to find a tab that reports their project in a larger HTML document. 
+
+The Rmarkdown_template.R defines the function Rmarkdown_template. It is a basic example that uses the mtcars data set.
+
+Here is the function. Since it includes RMarkdon, the lines with the code chuncks are 
+
+Rmarkdown_template <- function(title, message, filename) {
+  
+  today <- format(Sys.time(), "%B %d, %Y")
+  
+  file_str <- paste("---
+title: 'blah'
+author: 'name'
+date: ", today,"
+output: html_document
+---
+
+ ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+ ```
+
+## ", title,"
+
+This is a test to write an .Rmd file. 
+
+Our message is: ", message,"
+
+ ```{r cars}
+summary(cars)
+ ```
+
+", sep = "")
+  
+  file_str <- noquote(file_str)
+  output_file <- file(noquote(paste("",filename,".Rmd", sep = "")))
+  writeLines(file_str, output_file)
+  close(output_file)		 
+  
+}
+
+```{r Rmarkdown_template}
+
+# load the function
+source("Rmarkdown_template.R")
+
+Rmarkdown_template(title  = 'A Basic Example with mtcars', 
+                   message = "It's helpful to automate custom reporting!", 
+                   filename = 'A Basic Example') 
+```
+
+  * Now we can render the files to HTML
+  
+```{r Render_to_HTML}
+
+Rmd_to_render <- c('A Basic Example')
+
+for (file in Rmd_to_render) {
+  
+  rmarkdown::render(input       = paste0(file, '.Rmd'),
+                    output_file = paste0(file, '.html'))
+  
+}
+```
+
+
+
