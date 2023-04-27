@@ -1,5 +1,5 @@
 ---
-title: A Basic Example with mtcars
+title: Another Example
 author: 'name'
 date: April 26, 2023
 output: html_document
@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## A Basic Example with mtcars
+## Another Example
 
 This is a test to write an .Rmd file. 
 

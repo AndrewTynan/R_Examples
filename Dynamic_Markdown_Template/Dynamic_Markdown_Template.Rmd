@@ -66,9 +66,9 @@ num           <- 1
   
 for (file in Rmd_to_render) {
   
-  Rmarkdown_template(title  = 'A Basic Example with mtcars',
-                   message  = messages[num], 
-                   filename = file)
+  Rmarkdown_template(title   = Rmd_to_render[num],
+                    message  = messages[num], 
+                    filename = file)
 
   rmarkdown::render(input       = paste0(file, '.Rmd'),
                     output_file = paste0(file, '.html'))
