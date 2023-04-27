@@ -1,5 +1,5 @@
 
-Rmarkdown_template <- function(title, message, filename) {
+Rmarkdown_template <- function(title, message, model, filename) {
   
   today <- format(Sys.time(), "%B %d, %Y")
   
@@ -21,7 +21,12 @@ This is a test to write an .Rmd file.
 Our message is: ", message,"
 
 ```{r cars}
-summary(cars)
+input<-mtcars
+input$am <- as.factor(input$am)
+levels(input$am) <-c('AT', 'MT')
+
+fit <- ", model,"
+summary(fit)
 ```
 
 ", sep = "")

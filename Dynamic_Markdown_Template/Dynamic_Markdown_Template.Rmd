@@ -5,7 +5,7 @@ date: "2023-04-26"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup1, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -13,29 +13,32 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Here is an example of automating reporting using Markdown templates. 
 
-When making many models or doing some similar task it's nice to be able to write the outputs to an indiividual RMarkdown rather than report them all in one place. 
+* When making many models or doing some similar iterative task it's nice to be able to write the results to an individual RMarkdown / HTML rather than reporting them all in one place. Especially if there are more than handful of instances being reported on.
 
-This makes the reporting more accessible. For example, someone can be given the report that pertains to either project rather than need to find a tab that reports their project in a larger HTML document. 
+* Wrapping an Rmarkdown report in a function is a convenient way to create a reusable template.
 
-The Rmarkdown_template.R defines the function Rmarkdown_template. It is a basic example that uses the mtcars data set.
+  * It makes the reporting more accessible and has a cleaner, less cluttered appearance. 
+  
+  * It also reduces the risk of manual errors when creating different reports. 
 
-Here is the function. Since it includes RMarkdon, the lines with the code chuncks are 
-
-![The Rmarkdown_template](function_pic)
+* The Rmarkdown_template.R defines the function Rmarkdown_template. It is a basic example that uses the mtcars data set.
 
 ```{r Rmarkdown_template}
+# , eval = FALSE
 
 # load the function
 source("Rmarkdown_template.R")
 
-Rmd_to_render <- c('A Basic Example', 'Another Example')
-messages      <- c("It's helpful to automate custom reporting!", 'We can easily add other content dynamically!') 
+Rmd_to_render <- c('A Multiple Regression on MPG', 'Regress am on mpg')
+models        <- c('fit_all<-lm(mpg~.,data=input)', 'lm(mpg~am,data=input)')
+messages      <- c("First we regress all other variales on mpg.", 'Now regress am on mpg.') 
 num           <- 1
-  
+
 for (file in Rmd_to_render) {
   
   Rmarkdown_template(title   = Rmd_to_render[num],
                     message  = messages[num], 
+                    model    = models[num],
                     filename = file)
 
   rmarkdown::render(input       = paste0(file, '.Rmd'),
@@ -46,5 +49,11 @@ for (file in Rmd_to_render) {
 }
 ```
 
+## The Rmarkdown_template() Function
 
+* The Rmarkdown_template() is shown below as a picture because it's RMarkdown syntax limit the ability to show the actual text within this Rmarkdown document. 
+
+* In a real world scenario, the contents migth relate to different products or marketing campaigns. Or diagostic reprting for different models being fit on a data set. 
+
+![](Rmarkdown_template_function.png)
 
