@@ -28,9 +28,9 @@ Here is an example of automating reporting using Markdown templates.
 # load the function
 source("Rmarkdown_template.R")
 
-Rmd_to_render <- c('A Multiple Regression on MPG', 'Regress am on mpg')
+Rmd_to_render <- c('A Multiple Regression on MPG', 'Regress AM on MPG')
 models        <- c('fit_all<-lm(mpg~.,data=input)', 'lm(mpg~am,data=input)')
-messages      <- c("First we regress all other variales on mpg.", 'Now regress AM on MPG') 
+messages      <- c("First we regress all other variales on MPG", 'Now regress AM on MPG') 
 num           <- 1
 
 for (file in Rmd_to_render) {

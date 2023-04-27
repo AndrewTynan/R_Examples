@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-First we regress all other variales on mpg.
+First we regress all other variales on MPG
 
 ```{r cars}
 input            <- mtcars
