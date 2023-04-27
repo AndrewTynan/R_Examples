@@ -23,8 +23,7 @@ Here is an example of automating reporting using Markdown templates.
 
 * The Rmarkdown_template.R defines the function Rmarkdown_template. It is a basic example that uses the mtcars data set.
 
-```{r Rmarkdown_template}
-# , eval = FALSE
+```{r Rmarkdown_template, eval = FALSE}
 
 # load the function
 source("Rmarkdown_template.R")

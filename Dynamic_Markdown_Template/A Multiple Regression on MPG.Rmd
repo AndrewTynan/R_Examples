@@ -1,6 +1,6 @@
 ---
 title: A Multiple Regression on MPG
-author: 'name'
+author: ''
 date: April 26, 2023
 output: html_document
 ---
@@ -9,11 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## A Multiple Regression on MPG
-
-This is a test to write an .Rmd file. 
-
-Our message is: First we regress all other variales on mpg.
+First we regress all other variales on mpg.
 
 ```{r cars}
 input<-mtcars

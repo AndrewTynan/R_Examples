@@ -5,7 +5,7 @@ Rmarkdown_template <- function(title, message, model, filename) {
   
   file_str <- paste("---
 title: ", title,"
-author: 'name'
+author: ''
 date: ", today,"
 output: html_document
 ---
@@ -14,11 +14,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## ", title,"
-
-This is a test to write an .Rmd file. 
-
-Our message is: ", message,"
+", message,"
 
 ```{r cars}
 input<-mtcars
