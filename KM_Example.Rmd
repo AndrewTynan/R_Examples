@@ -41,12 +41,6 @@ data.frame(
 # cohorts %>% pull(age) %>% unique()
 ```
 
-```{r CHECK_date_num}
-cohorts %>% 
-   distinct(install_cohort) %>% 
-   mutate(date_num = dplyr::row_number()) 
-```
-
 ```{r dataprep}
 cohorts <- 
   raw_cohorts %>% 
@@ -61,6 +55,12 @@ cohorts <-
                                                 '2022_19', '2022_20','2022_21')
                                            , ordered = TRUE)) 
   # filter(install_cohort %in% c('2022_01', '2022_02'))
+```
+
+```{r CHECK_date_num}
+cohorts %>% 
+   distinct(install_cohort) %>% 
+   mutate(date_num = dplyr::row_number()) 
 ```
 
 ```{r}
@@ -152,12 +152,13 @@ data_to_loop <-
               cumsum_additive_growth_rate_TBL %>% dplyr::select( age, day_to_day_multiplier), 
               by = 'age') %>% 
     relocate(day_to_day_multiplier, .after = age) %>% 
-    mutate(avg_cumsum_revenue = ifelse(avg_cumsum_revenue == 0, NA, avg_cumsum_revenue))
+    mutate(avg_cumsum_revenue = ifelse(avg_cumsum_revenue == 0, NA, avg_cumsum_revenue)) %>%
+                      mutate(prior = lag(avg_cumsum_revenue))
 
 ages <- data_to_loop %>% pull(age)
 
 for (age in ages) {
-  
+    
     data_to_loop <- data_to_loop %>%
                       mutate(prior = lag(avg_cumsum_revenue),
                              avg_cumsum_revenue = if_else( is.na(prior), avg_cumsum_revenue, prior * day_to_day_multiplier))
