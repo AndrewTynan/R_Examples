@@ -1,0 +1,380 @@
+---
+title: "Plotting Distribution Fits"
+author: "Tynan"
+date: "2023-05-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+## Plots
+
+```{r, fig.width=15, fig.height=6}
+
+yaRRR <- function(distribution_type, sample_size, params) {
+  
+  library(cowplot)
+  library(glue)  
+  
+  df <-  if (distribution_type == 'rlnorm') {
+              as.data.frame( rlnorm(sample_size))
+    
+            } else if(distribution_type == 'rweibull') {
+              as.data.frame( rweibull(sample_size, shape = params[1], scale = params[2])) 
+              
+            } else if(distribution_type == 'rbeta') {
+              as.data.frame( rbeta(sample_size, shape1 = params[1], shape2 = params[2])) 
+
+            } else if(distribution_type == 'rpois') {
+              as.data.frame( rpois(sample_size, lambda = params[1]))
+
+            }
+
+  df <- df %>% 
+        mutate(distribution = as.character(distribution_type),
+               x            = row_number()) %>%
+        rename(y = 1) %>% 
+        dplyr::select(distribution, x, y)
+
+  p1 <- df %>% 
+        ggplot(.) + 
+          aes(x=y) + 
+          if (distribution_type == 'rpois') { 
+          geom_bar()
+          } else { 
+          geom_histogram(binwidth = if_else(distribution_type %in% c('rlnorm', 'rweibull'),  0.1, 0.01),
+                         fill = 'darkgreen') 
+          } 
+  
+    p1 <- p1 + labs(title = glue('Histogram of {distribution_type}'))
+  
+         if (distribution_type == 'rlnorm') {
+          p2 <- df %>% 
+                 ggplot() +
+                 aes(sample = y) +            
+                 stat_qq(distribution      = stats::qlnorm, color = 'darkgreen') +
+                 stat_qq_line(distribution = stats::qlnorm, color = 'darkgreen')  +
+                 labs(title = glue('QQ plot of {distribution_type}')) 
+          
+         } else if(distribution_type %in% c('rweibull')) {
+          p2 <- df %>% 
+                 ggplot() +
+                 aes(sample = y) + 
+                 stat_qq(distribution      = stats::qweibull, dparams = list(shape = params[1], scale = params[2]), color = 'darkgreen') +
+                 stat_qq_line(distribution = stats::qweibull, dparams = list(shape = params[1], scale = params[2]), color = 'darkgreen') +
+                 labs(title = glue('QQ plot of {distribution_type}'))
+          
+         } else if(distribution_type %in% c('rbeta')) {
+            p2 <- df %>%
+                 ggplot() +
+                 aes(sample = y) +
+                 stat_qq(distribution      = stats::qbeta, dparams = list(shape1 = params[1], shape2 = params[2]), color = 'darkgreen') +
+                 stat_qq_line(distribution = stats::qbeta, dparams = list(shape1 = params[1], shape2 = params[2]), color = 'darkgreen') +
+                 labs(title = glue('QQ plot of {distribution_type}'))
+
+         } else if(distribution_type %in% c('rpois')) {
+            p2 <- df %>%
+                 ggplot() +
+                 aes(sample = y) +
+                 stat_qq(distribution      = stats::qpois, dparams = list(lambda = params[1]), color = 'darkgreen') +
+                 stat_qq_line(distribution = stats::qpois, dparams = list(lambda = params[1]), color = 'darkgreen') +
+                 labs(title = glue('QQ plot of {distribution_type}'))
+
+         }
+  
+  cowplot::plot_grid(p1, p2)  
+
+}
+
+yaRRR('rlnorm', 1000, c(5, 5))
+```
+
+```{r, fig.width=15, fig.height=6}
+
+yaRRR <- function(distribution_type, sample_size, params) {
+  
+  library(cowplot)
+  library(glue)  
+  
+  df <-  if (distribution_type == 'rlnorm') {
+              as.data.frame( rlnorm(sample_size))
+    
+            } else if(distribution_type == 'rweibull') {
+              as.data.frame( rweibull(sample_size, shape = params[1], scale = params[2])) 
+              
+            } else if(distribution_type == 'rbeta') {
+              as.data.frame( rbeta(sample_size, shape1 = params[1], shape2 = params[2])) 
+
+            } else if(distribution_type == 'rpois') {
+              as.data.frame( rpois(sample_size, lambda = params[1]))
+
+            }
+
+  df <- df %>% 
+        mutate(distribution = as.character(distribution_type),
+               x            = row_number()) %>%
+        rename(y = 1) %>% 
+        dplyr::select(distribution, x, y)
+
+  p1 <- df %>% 
+        ggplot(.) + 
+          aes(x=y) + 
+          if (distribution_type == 'rpois') { 
+          geom_bar()
+          } else { 
+          geom_histogram(binwidth = if_else(distribution_type %in% c('rlnorm', 'rweibull'),  0.1, 0.01),
+                         fill = 'darkgreen') 
+          } 
+  
+    p1 <- p1 + labs(title = glue('Histogram of {distribution_type}'))
+  
+         if (distribution_type == 'rlnorm') {
+          stat_qq_setting      <- stat_qq(distribution      = stats::qlnorm, color = 'darkgreen') 
+          stat_qq_line_setting <- stat_qq_line(distribution = stats::qlnorm, color = 'darkgreen')  
+          
+         } else if(distribution_type %in% c('rweibull')) {
+          stat_qq_setting      <- stat_qq(distribution      = stats::qweibull, dparams = list(shape = params[1], scale = params[2]), color = 'darkgreen')
+          stat_qq_line_setting <- stat_qq_line(distribution = stats::qweibull, dparams = list(shape = params[1], scale = params[2]), color = 'darkgreen')
+          
+         } else if(distribution_type %in% c('rbeta')) {
+          stat_qq_setting      <- stat_qq(distribution      = stats::qbeta, dparams = list(shape1 = params[1], shape2 = params[2]), color = 'darkgreen') 
+          stat_qq_line_setting <- stat_qq_line(distribution = stats::qbeta, dparams = list(shape1 = params[1], shape2 = params[2]), color = 'darkgreen') 
+
+         } else if(distribution_type %in% c('rpois')) {
+          stat_qq_setting      <- stat_qq(distribution      = stats::qpois, dparams = list(lambda = params[1]), color = 'darkgreen') 
+          stat_qq_line_setting <- stat_qq_line(distribution = stats::qpois, dparams = list(lambda = params[1]), color = 'darkgreen') 
+
+         }
+
+  p2 <- df %>%
+        ggplot() +
+        aes(sample = y) +
+        stat_qq_setting +
+        stat_qq_line_setting +
+        labs(title = glue('QQ plot of {distribution_type}'))    
+  
+  cowplot::plot_grid(p1, p2)  
+
+}
+
+yaRRR('rbeta', 1000, c(1, 5))
+```
+
+```{r, fig.width=15, fig.height=6}
+
+yaRRR <- function(distribution_type, sample_size, params) {
+  
+  library(cowplot)
+  library(glue)  
+  
+  df <-  if (distribution_type == 'rlnorm') {
+              as.data.frame( rlnorm(sample_size))
+    
+            } else if(distribution_type == 'rweibull') {
+              as.data.frame( rweibull(sample_size, shape = params[1], scale = params[2])) 
+              
+            } else if(distribution_type == 'rbeta') {
+              as.data.frame( rbeta(sample_size, shape1 = params[1], shape2 = params[2])) 
+
+            }
+
+  df <- df %>% 
+        mutate(distribution = as.character(distribution_type),
+               x            = row_number()) %>%
+        rename(y = 1) %>% 
+        dplyr::select(distribution, x, y)
+    
+  p1 <- df %>% 
+        ggplot(.) + 
+          aes(x=y) + 
+          geom_histogram(binwidth = if_else(distribution_type %in% c('rlnorm', 'rweibull'),  0.1, 0.01))  +
+          labs(title = glue('Histogram of {distribution_type}'))
+  
+         if (distribution_type == 'rlnorm') {
+          p2 <- df %>% 
+                 ggplot() +
+                 aes(sample = y) +            
+                 stat_qq(distribution      = stats::qlnorm) +
+                 stat_qq_line(distribution = stats::qlnorm)  +
+                 labs(title = glue('QQ plot of {distribution_type}')) 
+          
+         } else if(distribution_type %in% c('rweibull', 'rbeta')) {
+          p2 <- df %>% 
+                 ggplot() +
+                 aes(sample = y) + 
+                 stat_qq(distribution = if(distribution_type == 'rweibull') {stats::qweibull} else {stats::qbeta},
+                         dparams      = if(distribution_type == 'rweibull') {
+                                                  list(shape  = params[1], scale = params[2])}
+                                           else { list(shape1 = params[1], shape2 = params[2]) }
+                                          ) + 
+                 stat_qq_line(distribution = if(distribution_type == 'rweibull') {stats::qweibull} else {stats::qbeta},
+                              dparams      = if(distribution_type == 'rweibull') {
+                                                    list(shape  = params[1], scale = params[2])}
+                                             else { list(shape1 = params[1], shape2 = params[2]) }
+                                                ) +                   
+                 labs(title = glue('QQ plot of {distribution_type}'))
+
+         }
+  
+  cowplot::plot_grid(p1, p2)  
+  
+
+}
+
+yaRRR('rbeta', 1000, c(1, 5))
+```
+
+```{r lognormal_hist}
+y_dlnorm <- as.data.frame(rlnorm(10000)) %>% 
+              mutate(x = row_number()) %>% 
+              rename(y = 1)
+
+y_dlnorm %>% 
+ggplot(.) + 
+  aes(x=y) + 
+  geom_histogram(binwidth=0.1)
+```
+
+```{r logormal_qq_plot}
+y_dlnorm %>% 
+ggplot(., aes(sample = y)) +
+   stat_qq(distribution = stats::qlnorm) +
+   stat_qq_line(distribution = stats::qlnorm)
+```
+
+```{r weibull_hist}
+weibull <- as.data.frame(rweibull(10000, shape = 1.2, scale = 1.5)) %>% 
+              mutate(x = row_number()) %>% 
+              rename(y = 1)
+
+weibull %>% 
+ggplot(.) + 
+  aes(x=y) + 
+  geom_histogram(binwidth=0.1)
+```
+
+```{r weibull_qq_plot}
+weibull %>% 
+ggplot() + 
+   aes(sample = y) + 
+   stat_qq(distribution      = stats::qweibull, dparams = list(shape = 1.2, scale = 1.5)) +
+   stat_qq_line(distribution = stats::qweibull, dparams = list(shape = 1.2, scale = 1.5)) 
+```
+
+```{r weibull_hist_2}
+weibull_2 <- as.data.frame(rweibull(1000, shape = 1.5, scale = 1)) %>% 
+                mutate(x = row_number()) %>% 
+                rename(y = 1)
+
+weibull_2 %>% 
+    ggplot() + 
+    aes(x = y) + 
+    geom_histogram(binwidth = 0.1)
+```
+
+```{r weibull_2}
+weibull_2 %>% 
+  ggplot() + 
+  aes(sample = y) + 
+  stat_qq(distribution      = stats::qweibull, dparams = list(shape = 1.5, scale = 1)) + 
+  stat_qq_line(distribution = stats::qweibull, dparams = list(shape = 1.5, scale = 1)) 
+```
+
+```{r}
+beta <- as.data.frame(rbeta(10000, shape1 = 1, shape2 = 5)) %>% 
+              mutate(x = row_number()) %>% 
+              rename(y = 1)
+
+beta %>% 
+    ggplot() + 
+    aes(x = y) + 
+    geom_histogram(binwidth = 0.01)
+```
+
+```{r}
+beta %>% 
+ggplot() + 
+  aes(sample = y) + 
+  stat_qq(distribution      = stats::qbeta, dparams = list(shape1 = 1, shape2 = 5)) + 
+  stat_qq_line(distribution = stats::qbeta, dparams = list(shape1 = 1, shape2 = 5)) 
+```
+
+```{r}
+poisson <- as.data.frame(rpois(1000, lambda = 5))  %>% 
+              mutate(x = row_number()) %>% 
+              rename(y = 1)
+
+poisson %>% 
+    ggplot() + 
+    aes(x = y) + 
+    geom_bar()
+```
+
+```{r}
+poisson %>% 
+  ggplot() + 
+    aes(sample = y) + 
+    stat_qq(distribution      = stats::qpois, dparams = list(lambda = 5)) + 
+    stat_qq_line(distribution = stats::qpois, dparams = list(lambda = 5)) 
+```
+
+## other plots 
+
+```{r }
+data <- data.frame(x=rt(10000, df=7))
+
+data %>% 
+ggplot(aes(x=x)) +
+  geom_histogram(aes(y = ..density..)) + 
+  stat_function(fun       = dnorm, 
+                linewidth = 1, 
+                color     = 'gray', 
+                # args      = list()
+                ) +
+  labs(title="Histogram of interest rate changes") + 
+  theme_bw()
+```
+
+```{r}
+data <- data.frame(x=rf(10000, df1=7, df2=120))
+
+data %>% 
+ggplot(aes(x=x)) +
+  geom_histogram(aes(y = ..density..)) + 
+  stat_function(fun       = dlnorm, 
+                linewidth = 1, 
+                color     = 'gray', 
+                args      = list()) +
+  labs(title="Histogram of interest rate changes") + 
+  theme_bw()
+```
+
+## chi dist 
+
+```{r}
+oestat = function(o, e){
+  sum( (e-o)^2/e )
+}
+
+set.seed(1)
+B = 10000
+# here we pick an arbitrary length / not the same as for Celegans
+n = 2847
+expected = rep(n/4 ,4)
+oenull = replicate(B, oestat(e=expected, o=rmultinom(1,size = n, prob = rep(1/4,4))))
+```
+
+```{r}
+ggplot(data.frame(null_stats = oenull)) +
+  geom_histogram(aes(x = null_stats), bins = 100, boundary=0)
+```
+
+```{r }
+ ggplot(data.frame(stat = oenull), aes(sample = stat)) +
+   stat_qq(distribution = stats::qchisq, dparams = list(df = 3)) +
+   stat_qq_line(distribution = stats::qchisq, dparams = list(df = 3)) 
+```
