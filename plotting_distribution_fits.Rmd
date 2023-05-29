@@ -456,3 +456,79 @@ ggplot(data.frame(null_stats = oenull)) +
    stat_qq(distribution = stats::qchisq, dparams = list(df = 3)) +
    stat_qq_line(distribution = stats::qchisq, dparams = list(df = 3)) 
 ```
+
+```{r}
+huh <- function() {
+  
+  print('asdasdsad')
+  df2 <<- data.frame(Doubles=double(),
+                 Integers=integer(),
+                 Factors=factor(),
+                 Logicals=logical(),
+                 Characters=character(),
+                 stringsAsFactors=FALSE) 
+  
+}
+
+huh()
+# df2 %>% names
+```
+
+```{r}
+mtcars %>% substitute(.)
+```
+
+```{r}
+variable_name <- function(object_name, folder = "temp") {
+  # return object_name
+  object_name
+  }
+
+# mtcars %>% substitute(.)
+mtcars %>% variable_name(object_name = deparse(substitute(.)))
+```
+
+```{r}
+
+```
+
+```{r}
+x_expression <- function(x) {
+  getAST <- function(ee) purrr::map_if(as.list(ee), is.call, getAST)
+
+  sc <- sys.calls()
+  ASTs <- purrr::map( as.list(sc), getAST ) %>%
+    purrr::keep( ~identical(.[[1]], quote(`%>%`)) )  # Match first element to %>%
+
+  if( length(ASTs) == 0 ) return( enexpr(x) )        # Not in a pipe
+  lhs_name <- dplyr::last( ASTs )[[2]]    # Second element is the left-hand sides
+  return(lhs_name)
+
+}
+
+# mtcars %>% x_expression()
+
+huh <- function(data) {
+
+  # data %>% variable_name(object_name = deparse(substitute(.)))
+
+  # data %>% x_expression()
+  x_expression(data)
+  wow <- glue('{lhs_name}_in_a_string')
+  print(wow)
+  # data
+  
+}
+
+mtcars %>% huh()
+
+
+```
+
+
+
+
+
+
+
+
