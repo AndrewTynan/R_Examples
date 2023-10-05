@@ -377,14 +377,12 @@ reports.</p></li>
 <li><p>The Rmarkdown_template.R defines the function Rmarkdown_template.
 It is a basic example that uses the mtcars data set.</p></li>
 </ul>
-<pre class="r"><code># 
-
-# load the function
+<pre class="r"><code># load the function
 source(&quot;Rmarkdown_template.R&quot;)
 
-Rmd_to_render &lt;- c(&#39;A Multiple Regression on MPG&#39;, &#39;Regress am on mpg&#39;)
+Rmd_to_render &lt;- c(&#39;A Multiple Regression on MPG&#39;, &#39;Regress AM on MPG&#39;)
 models        &lt;- c(&#39;fit_all&lt;-lm(mpg~.,data=input)&#39;, &#39;lm(mpg~am,data=input)&#39;)
-messages      &lt;- c(&quot;First we regress all other variales on mpg.&quot;, &#39;Now regress am on mpg.&#39;) 
+messages      &lt;- c(&quot;First we regress all other variales on MPG&quot;, &#39;Now regress AM on MPG&#39;) 
 num           &lt;- 1
 
 for (file in Rmd_to_render) {
