@@ -1,13 +1,13 @@
 
+
+# the inspiration for this function comes from this gist
 # https://gist.github.com/andrewheiss/0724b29a8c8b0c3bd0a49b896454be87
 
-library(tidyverse)
-library(glue) 
+# this function is a wrapper around that code
 
-# Manual way that gives you the most control over the areas
+# create data 
 variable <- rnorm(1000)
 variable_density <- density(variable)
-
 example_df <- tibble(x = variable_density$x, 
                      y = variable_density$y) %>%
               mutate(fill_stuff = case_when(x < -1 ~ "Lower end",
@@ -16,6 +16,9 @@ example_df <- tibble(x = variable_density$x,
 
 
 shaded_density_area <- function(data, x_var, y_var) {
+  
+  library(tidyverse)
+  library(glue) 
   
   x_name <- data %>% dplyr::select({{x_var}}) %>% colnames(.)
   y_name <- data %>% dplyr::select({{y_var}}) %>% colnames(.)
