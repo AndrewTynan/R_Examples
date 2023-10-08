@@ -1,5 +1,7 @@
 
-tably_two_vars <- function(data, var1, var2, with_percents_by=NA, perc_decimals=NA) { 
+tably_two_vars <- function(data, var1, var2, with_percents_by=NA, perc_decimals=1) { 
+  
+  # Note: can only use perc_decimals arg when with_percents_by arg is used. Might want to change this.. 
   
   library(janitor)
   
@@ -20,4 +22,12 @@ tably_two_vars <- function(data, var1, var2, with_percents_by=NA, perc_decimals=
     }
 } 
 
+
+# examples 
 mtcars %>% tably_two_vars(., cyl, carb)
+
+mtcars %>% tably_two_vars(., cyl, carb, with_percents_by = 'row')
+
+mtcars %>% tably_two_vars(., cyl, carb, with_percents_by = 'col')
+
+mtcars %>% tably_two_vars(., cyl, carb, with_percents_by = 'all')

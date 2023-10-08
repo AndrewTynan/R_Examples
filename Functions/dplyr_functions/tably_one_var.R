@@ -7,9 +7,9 @@ tably_one_var <- function(data, var) {
       janitor::tabyl({{var}}) %>% 
       janitor::adorn_totals("row") %>% 
       janitor::adorn_pct_formatting()
-
+  
 }
 
 # example
-# mtcars %>% tably_one_var(., cyl)
+mtcars %>% tably_one_var(., cyl)
 
