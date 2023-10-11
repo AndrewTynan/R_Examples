@@ -1,0 +1,319 @@
+---
+title: "Analytic Languages"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.width = 10)
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(reticulate)
+library(feather)
+library(arrow)
+```
+
+## {.tabset .tabset-pills}
+
+### Python and R 
+ 
+Historically viewed as adversarial they are now complementary due to easy interoperability, meaning: `the ability of computer systems or software to exchange and make use of information`.
+ 
+In `R`, the [reticulate](https://rstudio.github.io/reticulate/) and [reticulate in r_markdown](https://rstudio.github.io/reticulate/articles/r_markdown.html) references show how the package allows easy transfer of data objects between Python & R. 
+
+```{r}
+# knitr::include_url("https://rstudio.github.io/reticulate/")
+```
+ 
+With `reticulate` & `arrow` we can easily move objects between `R & Python`! 
+ 
+```{r}
+# knitr::include_url("https://arrow.apache.org/docs/r/articles/python.html")
+```
+ 
+#### References: 
+ 
+* [Run Python code and interact with Python](https://bookdown.org/yihui/rmarkdown-cookbook/eng-python.html)
+* [Apache Arrow in Python and R with reticulate](https://arrow.apache.org/docs/r/articles/python.html)
+* [Working with Arrow Datasets and dplyr](https://arrow.apache.org/docs/r/articles/dataset.html)
+ 
+#### Example: 
+
+* In Rmarkdown, we use the first argument in the code chunk to set the language we want.
+ 
+For example, below we print a string in R:
+ 
+```{r, echo = TRUE}
+cat('Hello World!')
+```
+ 
+And, then we print a string in Python:
+ 
+```{python, echo = TRUE}
+print("Hello World!")
+```
+ 
+ * here we see how to make and move data.frame / Dataframe between the two environments: 
+ 
+
+```{r, echo = TRUE}
+# make a data.frame in R to pass to Python
+mtcars_head <- mtcars %>% head(.) %>% .[,c(1:2)]
+
+mtcars_head
+```
+ 
+* Now from Python, we call the new data.frame from R. 
+* **All objects created within R chunks are available to Python using the 'r' object exported by the reticulate package.** 
+ 
+```{python, echo = TRUE}
+r.mtcars_head
+```
+
+```{python, echo = TRUE}
+x = [1, 2, 3]
+x
+```
+ 
+* **You can analagously access Python objects within R chunks via the 'py' object. For example:**
+
+```{r, echo = TRUE}
+py$x
+```
+
+* The [doc](https://rstudio.github.io/reticulate/articles/r_markdown.html) prvides additional details and so does the [R markdown Cookbook](https://bookdown.org/yihui/rmarkdown-cookbook/eng-python.html).
+* Here is a discussion of why {ineroperability](https://www.landeranalytics.com/post/how-to-deliver-maximum-value-using-r-python-cross-post-from-rstudio-blog) is valuable
+
+#### Jupyter
+
+* We can do the exact same thing in `Jupyter`; which means that we can work across languages
+* An R kernal can be run from Jupyter and the Python REPL can be called from Rmarkdown. 
+ 
+#### Big Data Options: 
+ 
+* [s3, dplyr, and feather](https://www.rstudio.com/blog/feather/)
+
+* [write between](https://stackoverflow.com/questions/43046688/python-dataframe-write-to-r-data-format)
+
+```{python}
+# import feather
+# path = 'my_data.feather'
+# feather.write_dataframe(df, path)
+```
+
+```{r feather}
+path <- "my_data.feather"
+# df <- read_feather(path)
+```
+
+
+### Rmarkdown 
+
+* One of the main reasons that we would use R & Python together is for reporting. Here are some examples of apps that combine the two languages: 
+  * [Interoperability: Getting the Most Out of Your Analytic Investments](https://www.rstudio.com/blog/interoperability-maximize-analytic-investments/)
+  * [Debunking R and Python Myths: Answering Your Questions](https://www.rstudio.com/blog/dispelling-r-and-python-myths-qanda/) 
+  * [3 Wild-Caught R and Python Applications](https://www.rstudio.com/blog/practical-interoperability/) 
+  
+```{r}
+knitr::include_url("https://www.rstudio.com/blog/interoperability-maximize-analytic-investments/")
+```  
+ 
+* There are many guides, here are some that might help:
+
+<span style="color: red;">NOTE:</span> these are two different tutroials within the same page. Ignore the repetitive header!
+
+```{r}
+knitr::include_url("https://statsandr.com/blog/getting-started-in-r-markdown/#yaml-heade")
+```
+ 
+```{r}
+knitr::include_url("https://statsandr.com/blog/tips-and-tricks-in-rstudio-and-r-markdown/#print-models-parameters")
+```
+ 
+#### References: 
+ 
+* [Getting-started-in-r-markdown](https://statsandr.com/blog/getting-started-in-r-markdown/#yaml-header) 
+ 
+* [Tips-and-tricks](https://statsandr.com/blog/tips-and-tricks-in-rstudio-and-r-markdown/#print-models-parameters)
+ 
+* [rmarkdown-cookbook](https://bookdown.org/yihui/rmarkdown-cookbook/)
+ 
+* [We all like options](https://yihui.org/knitr/options/)
+ 
+
+### R Setup & Tutorials
+
+`R` is a great example of why `Brew` is helpful; it's kinda a pain to navigate `CRAN` haha, sob 
+ 
+  * We need to go from [r-project](https://www.r-project.org/) through several other pages to [CRAN](https://cran.microsoft.com/) to download a disk image 
+     
+  * Once installed, [Brew](https://formulae.brew.sh/cask/rstudio) allows us to install R and RStudio with simple commands. To install R using brew type the following in a terminal window: 
+ 
+`brew install r` 
+ 
+Updates for all your software can be easily performed and will be automatically handled by the following line: 
+ 
+`brew update; brew upgrade`
+
+* If you have `Brew`, you can use that to installed R and RStudio 
+  * [Bob Rudis's Brew Overview](https://rud.is/b/2015/10/22/installing-r-on-os-x-100-homebrew-edition/) is a great starting point for working with `Brew`. 
+ 
+  * Application-specific Python version, meaning conda, can be installed via Brew as well
+    * Tho IMO I'm not sure it's easier or more convenient ;) 
+ 
+**Package updates** 
+ 
+* Since R is open source authors are constantly updating their packages
+* Plus some packages in the`Tidyverse` are developed and/or maintained by the RStudio Dev Team 
+  * For example: `update.packages()`; wow, that was hard ;) 
+ 
+* We can use devtools if a bug was fixed in the dev version but but the package has not been submitted to CRAN yet. 
+  * For example: `devtools::install_github("tidyverse/dplyr")`
+ 
+ 
+#### Extend R 
+
+* Once `R` is installed, then we can complement it with add-on packages!
+
+    * `R` has a _very_ robust development community, with the `Tidyverse` dialect being updated regualrly and many additions for the wider (often academic) community!
+    * Yes, it is not unlike Python, but seems to have more breadth and be a better `rails-esque` experience analytical computing, IMO anyway
+ 
+```{r}
+knitr::include_url("https://github.com/rstudio/RStartHere")
+```
+ 
+Setup options for many things: 
+* [macOS Setup Guide](http://sourabhbajaj.com/mac-setup/)
+ 
+ 
+#### R Additional Setup
+ 
+* There are also helpful guides on using `R`
+
+```{r}
+knitr::include_url("https://github.com/qinwf/awesome-R")
+```
+ 
+#### References: 
+ 
+* [RStartHere](https://github.com/rstudio/RStartHere)
+ 
+* [what-they-forgot](https://github.com/rstats-wtf/what-they-forgot)
+ 
+* [awesome-R](https://github.com/qinwf/awesome-R) 
+ 
+### FockeRs
+
+* R is both a great and horrible language, not unlike JavaScript! :p 
+* There are a couple main dialects: `Base R`, the `Tidyverse`, and myriad others.
+* Let's run-through an example, it shows how to look at packages while also giving some tips on how to avoid problems in `R`
+ 
+[R User Installed Packages](https://stackoverflow.com/questions/38481980/get-the-list-of-installed-packages-by-user-in-r) question on Stackoverflow has responses. They range from pure `Base R` to those than are pure `Rstudio GUI` to those that mix `Base R` & `Tidyverse` 
+  * It's good consider whether the most popular answer is the best :) 
+ 
+The most up-voted answer is from 2016, and uses base R syntax: 
+ 
+* Not only is that syntax cryptic, by using the default `as.data.frame` we end-up with `row_names` 
+* `row_names` tend to be confusing and annoying, especially when you are newer to `R` 
+  * Unlike the columns of data in the table, `row_names` cannot be accessed by position nor name 
+    * As an attribute (eg `attr`) they have to be accessed via special functions  
+* By looking at the structure of the data.frame, we can see the row.names, ugh 
+ 
+```{r base_R_example_issuesy, echo = TRUE}
+ip = as.data.frame(installed.packages()[,c(1,3:4)])
+ip = ip[is.na(ip$Priority),1:2,drop=FALSE]
+ip %>% head 
+```
+
+```{r unused}
+# Tee pipe 
+# r_names <- 
+# attr(x = ip, which = "row.names") %>% 
+#   structure(.,  dim = c(52, 4)) %>% 
+#    as_tibble(.) %T>% 
+#   # paste (..., sep = " ", collapse = NULL, recycle0 = FALSE)
+#   
+#   # cat(colnames(.))
+#   cat(dim(.))
+```
+
+```{r}
+# if we want, we can add structure.. but this is pretty rando lol 
+# structure(attributes(ip)$row.names,  dim = c(52, 4)) # annoying to make matrix lol
+
+# looking at the structure of the data.frame, we can see the row.names, ugh 
+attributes(ip) %>% str(.)
+```
+
+* Fortunately, the `Tidyverse` dialect provides a better alternative! 
+ 
+* We can use much more `human-readable syntax`, yay! 
+
+```{r installed_packages_tidy, echo = TRUE}
+installed_packages <- 
+installed.packages() %>% # class()
+  as_tibble() %>% # names
+  select(Package, Version, Priority) %>% 
+  # filter(is.na(Priority)) %>% 
+  mutate(Priority = case_when(is.na(Priority) ~ 'user',
+                              TRUE ~ Priority)) # %>% 
+  # filter(Priority == 'user') 
+  
+installed_packages %>%   
+  count(Priority) %>% 
+  qplot(x = Priority, y = n, data = ., geom = "col", fill = Priority) + 
+  geom_text(aes(label = n), vjust = -0.5) + 
+  theme(legend.position = 'none') + 
+  labs(title = 'My Installed Package Counts by Priority',
+       subtitle = 'Priority is package metadata field',
+       caption = 'Note: R appears to use the Priority field to determine which packages to install when R is first setup. ',
+       y = 'Package Count')
+```
+
+```{r my_package_list,  echo = TRUE}
+packages <- 
+installed_packages %>%  
+  filter(Priority == 'user') %>% 
+  select(Package) %>% 
+  arrange(Package) %>% 
+  pull() 
+
+packages <- paste(shQuote(packages), collapse = ", ") 
+```
+
+* My packages: 
+
+install.packages(c('abind', 'askpass', 'assertthat', 'backports', 'base64enc', 'BH', 'bitops',
+'blob', 'boomer', 'brio', 'broom', 'bslib', 'cachem', 'callr', 'car', 'carData', 'cellranger',
+'classInt', 'cli', 'clipr', 'colorspace', 'colourpicker', 'commonmark', 'corrplot', 'cowplot',
+'cpp11', 'crayon', 'credentials', 'crosstalk', 'curl', 'data.table', 'DBI', 'dbplyr', 'desc',
+'diffobj', 'digest', 'dplyr', 'dtplyr', 'e1071', 'ellipsis', 'evaluate', 'exactRankTests', 'fansi',
+'farver', 'fastmap', 'feather', 'fontawesome', 'forcats', 'forecast', 'formatR', 'fracdiff', 'fs',
+'gargle', 'generics', 'gert', 'ggedit', 'ggplot2', 'ggpubr', 'ggrepel', 'ggsci', 'ggsignif',
+'ggtext', 'ggThemeAssist', 'gh', 'giphyr', 'gitcreds', 'glue', 'googledrive', 'googlesheets4', 'gridExtra', 'gridtext', 'gtable', 'haven', 'here', 'highr', 'hms', 'htmltools', 'htmlwidgets', 'httpuv', 'httr', 'ids', 'infer', 'ini', 'isoband', 'janitor', 'jpeg', 'jquerylib', 'jsonlite', 'km.ci', 'KMsurv', 'knitr', 'labeling', 'labelled', 'later', 'lazyeval', 'lifecycle', 'lme4', 'lmtest', 'lobstr', 'lubridate', 'magrittr', 'maptools', 'markdown', 'MatrixModels', 'maxstat', 'mime', 'miniUI', 'minqa', 'modelr', 'munsell', 'mvtnorm', 'nloptr', 'numDeriv', 'openssl', 'patchwork', 'pbkrtest', 'pillar', 'pkgconfig', 'pkgload', 'plotly', 'plyr', 'png', 'polynom', 'praise', 'prettyunits', 'processx', 'progress', 'promises', 'proxy', 'pryr', 'ps', 'purrr', 'quadprog', 'quantmod', 'quantreg', 'questionr', 'R.cache', 'R.methodsS3', 'R.oo', 'R.utils', 'R6', 'rappdirs', 'RColorBrewer', 'Rcpp', 'RcppArmadillo', 'RcppEigen', 'RcppTOML', 'RCurl', 'readr', 'readxl', 'rematch', 'rematch2', 'remedy', 'reprex', 'reticulate', 'rlang', 'rmarkdown', 'rprojroot', 'rstatix', 'rstudioapi', 'rvest', 'sass', 'scales', 'selectr', 'shiny', 'shinyAce', 'shinyBS', 'shinyhelper', 'shinyjs', 'snakecase', 'sourcetools', 'sp', 'SparseM', 'stringi', 'stringr', 'styler', 'survminer', 'survMisc', 'sys', 'testthat', 'tibble', 'tidyr', 'tidyselect', 'tidyverse', 'timeDate', 'tinytex', 'tseries', 'tsviz', 'TTR', 'urca', 'usethis', 'utf8', 'uuid', 'vctrs', 'ViewPipeSteps', 'viridisLite', 'waldo', 'whisker', 'whoami', 'withr', 'xfun', 'xml2', 'xtable', 'xts', 'yaml', 'ymlthis', 'zip', 'zoo'), dependencies = TRUE)
+
+
+### Dash vs Shiny vs blah-blah
+ 
+* There is a ton of similarity in the syntax between Dash & Shiny
+* Essentially, both are just wrappers for JavaScript, HTML & CSS
+ 
+```{r}
+knitr::include_url("https://appsilon.com/dash-vs-shiny/")
+```
+ 
+ 
+* [Dash Layout](https://dash.plotly.com/layout) 
+ 
+* [Just tell me which one to use](https://www.datarevenue.com/en-blog/data-dashboarding-streamlit-vs-dash-vs-shiny-vs-voila#:~:text=Dash%20and%20Shiny%20are%20both,version%2C%20and%20it's%20more%20flexible.)
+
+* [How do Dash, Shiny, and Streamlit compare](https://plotly.com/comparing-dash-shiny-streamlit/)
+ 
+* [Python Dash vs. R Shiny – Which To Choose in 2021 and Beyond](https://appsilon.com/dash-vs-shiny/)
+
+* [SHINY VS. DASH: A SIDE-BY-SIDE COMPARISON](https://www.rkingdc.com/blog/2019/3/6/shiny-vs-dash-a-side-by-side-comparison?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+Blog-RKingDataConsulting+%28R+Blog+-+R.+King+Data+Consulting%29)
