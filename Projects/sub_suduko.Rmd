@@ -1,0 +1,225 @@
+---
+title: "sub_suduko"
+author: "Tynan"
+date: "2023-10-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(dplyr)
+library(magrittr)
+```
+
+## R Markdown
+
+You are working on a logic game made up of a series of puzzles. 
+
+The first type of puzzle you settle on is "sub-Sudoku", a game where the player has to position the numbers 1..N on an NxN matrix.
+
+Your job is to write a function that, given an NxN matrix, returns true if every row and column contains the numbers 1..N
+
+The UI for the game does not do any validation on the numbers the player enters, so the matrix can contain any signed integer.
+
+```{r test_data_raw}
+# Examples:
+
+# [[1, 2, 3],
+#  [3, 1, 2],
+#  [2, 3, 1]]        -> True
+
+# [[1, 2, 3],
+#  [1, 2, 3],
+#  [1, 2, 3]]        -> False
+
+# [[1, 1, 1],
+#  [2, 2, 2],
+#  [3, 3, 3]]        -> False
+
+# [[1000, -1000, 6],
+#  [   2,     3, 1],
+#  [   3,     1, 2]] -> False
+
+# [[0]]              -> False
+
+# [[3, 2, 3, 2],
+#  [2, 3, 2, 3],
+#  [3, 2, 3, 2],
+#  [2, 3, 2, 3]]     -> False
+
+# [[2, 3, 4],
+#  [3, 4, 2],
+#  [4, 2, 3]]        -> False
+
+# [[-1,-2,-3],
+#  [-2,-3,-1], 
+#  [-3,-1,-2]]       -> False
+
+# [[1,1,1],
+#  [1,1,2],
+#  [1,2,3]]          -> False
+
+# [[1]]              -> True
+
+# n: The number of rows/columns in the matrix
+
+```
+
+```{r test_data}
+# True
+grid1 <- matrix(c(1,2,3,
+	                3,1,2,
+	                2,3,1), nrow=3, ncol=3, byrow=TRUE)
+grid1                  
+
+# False
+grid2 <- matrix(c(1,2,3,
+	                1,2,3,
+	                1,2,3), nrow=3, ncol=3, byrow=TRUE)
+# False
+grid3 <- matrix(c(1,1,1,
+	                2,2,2,
+	                3,3,3), nrow=3, ncol=3, byrow=TRUE)
+	                
+# False
+grid4 <- matrix(c(1000,-1000,6,
+	                2,3,1,
+	                3,1,2), nrow=3, ncol=3, byrow=TRUE)
+	                
+# False
+grid5 <- matrix(c(0), nrow=1, ncol=1, byrow=TRUE)
+
+# False
+grid6 <- matrix(c(3, 2, 3, 2,
+	                2, 3, 2, 3,
+	                3, 2, 3, 2,
+	                2, 3, 2, 3), nrow=4, ncol=4, byrow=TRUE)
+# False
+grid7 <- matrix(c(2,3,4,
+	                3,4,2,
+	                4,2,3), nrow=3, ncol=3, byrow=TRUE)
+# False
+grid8 <- matrix(c(-1,-2,-3,
+	                -2,-3,-1,
+	                -3,-1,-2), nrow=3, ncol=3, byrow=TRUE)
+# False
+grid9 <- matrix(c(1, 1, 1,
+  1, 1, 2,
+  1, 2, 3), nrow=3, ncol=3, byrow=TRUE)
+
+# True
+grid10 <- matrix(c(1), nrow=1, ncol=1, byrow=TRUE)
+```
+
+
+```{r prototype}
+grid1 <- matrix(c(1,2,3,
+	                3,1,2,
+	                2,3,1), nrow=3, ncol=3, byrow=TRUE)
+
+grid1 <- as.data.frame(grid1)
+
+series_sum <- sum(1:3)
+
+grid1 %>% 
+  as.data.frame(.) %>% 
+	dplyr::summarise(across(1:3, sum))  %>%
+	dplyr::mutate(across(1:3, ~ case_when(. == series_sum ~ 1,
+																				. != series_sum ~ 0)))
+```
+
+## Function
+
+```{r sub_suduko, echo=FALSE}
+
+sub_suduko <- function(data, N) {
+
+      data    <- as.data.frame(data) 
+      df_rows <- dim(data)[1]
+      df_cols <- dim(data)[2]
+      
+			series_sum <- sum(1:N)
+
+			cols_check <-	data %>%
+              				dplyr::summarise(across(1:df_cols, sum)) %>%
+			  	            dplyr::summarise(across(1:df_cols, abs))  %>%  
+              				dplyr::mutate(across(1:df_cols, ~ case_when(. == series_sum ~ 1,
+              																										. != series_sum ~ 0))) %>% 
+			                mutate(sum = rowSums(across(where(is.numeric)), na.rm = TRUE)) %>% 
+			                pull(sum) 
+
+			rows_check <- data %>% 
+                			t(.) %>%
+			                as.data.frame(.) %>% 
+                			dplyr::summarise(across(1:df_rows, sum)) %>%
+			  	            dplyr::summarise(across(1:df_rows, abs))  %>%  
+                			dplyr::mutate(across(1:df_rows, ~ case_when(. == series_sum ~ 1,
+                																									. != series_sum ~ 0))) %>% 
+			  			        mutate(sum = rowSums(across(where(is.numeric)), na.rm = TRUE)) %>% 
+			                pull(sum) 
+			
+			rows     <- if(df_rows - rows_check == 0) 'yes' else 'no' 
+			cols     <- if(df_rows - cols_check == 0) 'yes' else 'no'
+			if(rows == 'yes' & cols == 'yes') 'yessir!' else 'no sir' 
+			
+}
+
+grid1 <- matrix(c(1,2,3,
+	                3,1,2,
+	                2,3,1), nrow=3, ncol=3, byrow=TRUE)
+
+grid2 <- matrix(c(1, 2, 3,
+                  1, 2, 3,
+                  1, 2, 3), nrow=3, ncol=3, byrow=TRUE)
+
+grid3 <- matrix(c(1, 1, 1,
+                   2, 2, 2,
+                   3, 3, 3), nrow=3, ncol=3, byrow=TRUE)
+
+grid4 <- matrix(c(1000, -1000, 6,
+                  2, 3, 1,
+                  3, 1, 2), nrow=3, ncol=3, byrow=TRUE)
+
+grid5 <- matrix(c(0), nrow=1, ncol=1, byrow=TRUE)
+
+grid6 <- matrix(c( 3, 2, 3, 2,
+                   2, 3, 2, 3,
+                   3, 2, 3, 2,
+                   2, 3, 2, 3), nrow=4, ncol=4, byrow=TRUE) 
+
+grid7 <- matrix(c( 2, 3, 4,
+                   3, 4, 2,
+                   4, 2, 3), nrow=3, ncol=3, byrow=TRUE)   
+
+grid8 <- matrix(c( -1,-2,-3,
+                   -2,-3,-1,
+                   -3,-1,-2), nrow=3, ncol=3, byrow=TRUE) 
+
+grid9 <- matrix(c(1,1,1,
+                  1,1,2,
+                  1,2,3), nrow=3, ncol=3, byrow=TRUE) 
+
+grid10 <- matrix(c(1), nrow=1, ncol=1, byrow=TRUE)
+
+grid11 <- matrix(c(1,-2,-3,
+                   -2,-3,1,
+                   -3,1,-2), nrow=3, ncol=3, byrow=TRUE) 
+
+sub_suduko(grid11, 3) 
+
+```
+
+```{r negatives}
+
+# it seems like more needs to be done for this to really work with negative values 
+
+grid11 %>% 
+  as.data.frame(.) %>% 
+	dplyr::summarise(across(1:3, sum)) # %>%
+	# dplyr::summarise(across(1:3, abs))  %>%  
+	# dplyr::mutate(across(1:3, ~ case_when(. == series_sum ~ 1,
+	# 																			. != series_sum ~ 0)))
+```
+
