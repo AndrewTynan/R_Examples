@@ -1,6 +1,8 @@
 
 clean_col_values <- function(df, metric_cols = 'Metric') {
   
+  # NOTE: used to call this clean_metric_names
+  
   #' @description 
   #' Provides a way to clean the values in a data.frame column containing string values.
   #' The use case is cleaning values before reporting in a table (specifically one created using skim() where the variable name is displayed).
