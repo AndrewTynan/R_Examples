@@ -2,7 +2,9 @@
 title: "sub_suduko"
 author: "Tynan"
 date: "2023-10-01"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -132,7 +134,7 @@ grid1 %>%
 
 ## Function
 
-```{r sub_suduko, echo=FALSE}
+```{r sub_suduko, echo=TRUE}
 
 sub_suduko <- function(data, N) {
 
