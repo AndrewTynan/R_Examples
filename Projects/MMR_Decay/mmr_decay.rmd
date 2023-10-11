@@ -1,0 +1,267 @@
+---
+title: "ELO Decay"
+date: "November 1, 2016"
+output:
+  html_document:
+    theme: readable 
+    highlight: tango 
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r, message=FALSE, results='hide', fig.show='hide'} 
+source("elo_decay.R") 
+source("elo_decay_w_buckets.R")
+source("elo_decay_1_day.R")
+```
+
+## {.tabset .tabset-pills}
+
+### Overview
+
+This analysis looks at differences between post-match ELO scoes using before and after chrun/reactivtion to try and determine if a user's ELO decays from inactivity. This was done to get a better sense of how inactivity impacts ELO in order to improve matchmaking for users following inactivity.  
+
+Note: there are two main confounding factors: a user can be active in non-ranked queue play during the time that they are inactive (eg churned) from ranked play. A user can be playing on a different account in ranked and so never truely have stopped ranked play. 
+
+**Questions**: 
+
+* _Do users experience ELO decay after periods of inactivity?_  
++ _Is there a relationship between user liftime prior to churn and ELO decay?_
++ _Is there a relationship between the duration of the user's period of inactivity and ELO decay?_
+
+**Methodology**: 
+
+The scope of the ask was to look at ELO Decay in Ranked play. The `mm_r_account_daily_time_active_status` table was created from `platform_matchmaking_info` at the account id (eg `e_player_uuid`) with the `e_queue = 'ranked'` condition. An Accounts active status is based on the same conditions that are used in creating the `user_daily_active_status` (which is used for device (eg user) reporting in Shiny. A user was classified as having churned when they have been inactive for 7 days. Data is from 8/20/16.
+
+Note: since all the backing data is based on `platform_matchmaking_info`, an account's first active date and all active data is based on when they played ranked queue. 
+
+Then the pre and post avg elo difference was calculated for up to five matches. If the account churned and was reactivated before 5 matches then the lower number of matches is used. Meaning the avg elo difference does not overlap between reactivated periods.
+
+* __To better contextualize the ELO decay, two additional variables were included__: 
+    + **Days Since Active**: the number of days since the account last played ranked
+    + **Pre-Churn Lifetime Days**: the number of days between the account first playing ranked and their last active date 
+
+**Results**: 
+
+Although the count of values skews slightly negative, the avg elo decay is very slightly positive. Indicating that there is no decay, but actually a slight improvement. 
+
+* `r mean(user_elo_decay$final_elo_diff)` is the average ELO decay (across all reactivations)
+
+* Across all splits of `Days Since Active` and `Pre-Churn Lifetime Days`: 
+    + the distribution was centered at 0
+    + and at each day, the avg elo diff was slightly positive 
+    
+Please see the following pages for the findings.   
+This report was last updataed at `r Sys.time()`
+
+### Explore
+
+The range of Avg. ELO Differnece scores was reduced to being between -50 and 50, this removed less than 1% of records. 
+
+```{r fig.width=9, fig.height=4}
+par(mfrow = c(1,2))
+
+hist(user_elo_decay$final_elo_diff, 
+     breaks = seq(from = (round(min(as.numeric(user_elo_decay$final_elo_diff))) -1),
+                  to = (round(max(user_elo_decay$final_elo_diff)) + 1),
+                  by = 1),
+     main = "Avg. ELO Differece Pre/Post Reactivation",
+     xlab = "Avg. ELO Differece")
+
+hist(user_elo_decay_2$final_elo_diff, 
+     breaks = seq(from = -50, to = 50, by = 1),
+     main = "Outlier Removed \n Avg. ELO Differece Pre/Post Reactivation",
+     xlab = "Avg. ELO Differece")     
+```
+
+<br>
+
+* Findings 
+    + Pre-churn lifetime days most frequent lifetime is 0
+    + Similarly, the Days Since Active most frequent day is 8 (the min # of days to reactivated, using 7 day churn criteria)
+
+```{r fig.width=9, fig.height=4}
+par(mfrow = c(1,2))
+
+hist(user_elo_decay_2$pre_churn_lifetime_days, 
+     breaks = seq(from = min(user_elo_decay_2$pre_churn_lifetime_days),
+                  to = max(user_elo_decay_2$pre_churn_lifetime_days),
+                  by = 1),
+     main = "Pre-Churn Lifetime Days")
+
+hist(user_elo_decay_2$days_since_active, 
+     breaks = seq(from = min(user_elo_decay_2$days_since_active),
+                   to = max(user_elo_decay_2$days_since_active),
+                   by = 1),
+     main = "Days Since Active")
+```
+
+### Days Since Active
+
++ _Is there a relationship between the duration of the user's period of inactivity and ELO decay?_
+
+Distributions were compared both at the individual `Days Since Active` levels as well as at an aggregae level that binned `Days Since Active` into quartiles. Comparison between quartiles was done enabled an easier comparison of the high and low ends of the `Days Since Active` range.
+
+* Much like overall, at both the individual `Days Since Active` levels and in the qurtiles the distributions of AVG ELO Differences were centered around 0. 
+    + Further indicating that there is not a relationship between inactivity in ranked play in an accounts ELO rated of change
+
+```{r fig.width=9, fig.height=5}
+g1
+```
+
+<br> 
+
+* The indiivdual `Days Since Active` levels show changes in magnitude, but not the centering of the distributions around 0.
+    + Again, inactivity does not appear related to meaningful changes in Avg ELO difference (when looking at 5 matches pr/post)
+
+```{r fig.width=9, fig.height=7}
+g1b
+```
+
+<br> 
+
+* Avg ELO Diff. was calculated at each level of `Days Since Active` to contextualize the distributions
+    + There is a consistent, slight positive skew to the Avg. ELO Diff. at almost all levels 
+    + This appears to indicate that many of the devices / users related to these accounts are not inactive when the accounts are inactive in ranked.
+    + This illustrates a key problem of this analysis, it is limited to one mode and inactivity in this mode can be misleading / inaccurate about inactivity in the game in general. 
+    
+```{r fig.width=9, fig.height=5}
+g9 <- ggplot(avg_elo_decay_by_days_since_active,
+              aes(x = days_since_active,
+                  y = avg_final_elo_diff))
+
+g9 + geom_bar(stat = "identity") +
+  ggtitle("Avg. ELO Diff. by Days Since Active") +
+  labs(x = "Days Since Active", y = "Avg. Final ELO Diff.") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x = element_text(size = 10, angle = 00))
+```
+
+### Prechurn Days
+
+As with the `Days Since Active`, the `Prechurn Lifetime Days` was examined to see if differences in lifetime was related to an accounts ELO change. 
+
+* Again the different daily levels, in this case lifetime days, the distributions did not have different centers or spreads. 
+
+```{r fig.width=9, fig.height=7}
+g1c
+```
+
+```{r fig.width=9, fig.height=5}
+g10 + geom_bar(stat = "identity") +
+  ggtitle("Avg. ELO Diff. by Pre Churn Lifetime Days") +
+  labs(x = "Pre Churn Lifetime Days", y = "Avg. Final ELO Diff.") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x = element_text(size = 10, angle = 00))  
+```
+
+### ELO Buckets
+
+Users' ELO was divided by 100 to create ELO Buckets in order to compare the Avg. ELO Diff. To contextualize this data, a second chart below provides the distribution of Users by ELO Bucket.
+
+* Users' with an ELO below 11 (eg 1100) are likely to see a positive ELO Diff. after reactivating while users above 1100 are likely to see a decline
+    + ELO Diff. distributions by `player_elo_buckets` are shown in the second chart
+    + And distributions of ELO Diff. by ELO Buckets are provided below to provide more context on the averages shown here
+
+```{r fig.width=9, fig.height=5}
+g12 + geom_bar(stat = "identity") +
+  ggtitle("Avg. ELO Diff. by ELO Bucket") +
+  labs(x = "ELO Bucket", y = "Avg. ELO Diff.") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x = element_text(size = 10, angle = 00)) 
+
+g13 + geom_bar(stat = "identity") +
+  ggtitle("User Count by ELO Bucket") +
+  labs(x = "ELO Bucket", y = "User Count") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x = element_text(size = 10, angle = 00))  
+```
+
+<br> 
+
+_Note_: <span style="color:red"> In the chart below the axis ranges differ by plot</span>
+
+* Most buckets with decent sample sizes are tightly centered around 0, with smaller samples sizes showing more skew
+    + The positive skew can be seen fairly clearly in the ELO Buckets below 11 (eg 1100)
+    + Alternatley, the negative skew can be seen in the higher buckets 
+    
+```{r fig.width=9, fig.height=7}
+g11a
+```
+
+### 1 Match Diff
+
+Data for this reporting uses the difference between the last match pre-churn and the first match post reactivation. This was done to show the the change that occurs in the first match back, rather than comparing the differences between the pre and post period. The advantage of this method is seeing a chagne between two matches, rather than comparing avg differences between two sets of matches (pre / post).
+
+* Here we see a clear bi-modal / multimodal shape, which can be seen more clearly in the outlier cleaned version of the chart
+    + Although we continue to see a negative Avg. ELO Diff. there are clear tendencies for moderate positive or negative dips / lifts 
+    + This indicates that trying to assign a single parameter for ELO decay in the first match poast reactivtion would unfairly handicap a sizable portion of users who have an ELO lift post reactivation
+
+```{r fig.width=9, fig.height=4}
+par(mfrow = c(1,2))
+
+hist(user_elo_decay_b$final_elo_diff,
+     breaks = seq(from = min(user_elo_decay_b$final_elo_diff),
+                  to = max(user_elo_decay_b$final_elo_diff),
+                  by = 1),
+     main = "ELO Differece Pre/Post Reactivation",
+     xlab = "ELO Differece")
+
+hist(user_elo_decay_b_2$final_elo_diff, 
+     breaks = seq(from = -100, to = 100, by = 1),
+     main = "Outlier Removed \n ELO Differece Pre/Post Reactivation",
+     xlab = "ELO Differece")   
+```
+
+<br> 
+
+* 
+
+```{r fig.width=9, fig.height=5}
+gg1 
+```
+
+```{r fig.width=9, fig.height=7}
+gg1b 
+```
+
+```{r fig.width=9, fig.height=7}
+gg1c 
+```
+
+```{r fig.width=9, fig.height=7}
+gg11 
+```
+
+```{r fig.width=9, fig.height=5}
+gg9 
+```
+
+```{r fig.width=9, fig.height=5}
+gg10
+```
+
+```{r fig.width=9, fig.height=5}
+gg12 
+```
+
+
+### Avg. Actual ELO
+
+To further contextualize ELO change, the average of the absolute values for the pre and post churn matches was compared grouping by ELO bucket. This was then averaged by ELO bucket to provide a sense of the difference between the pre/post average ELO. This was done to contextualize the ELOs themselves, rather than the change in the ELO. As opposed to the previously tabs which either report on the Avg Diff. between the pre and post ELO differences or the look at the avg ELO chagne between a single match pre / post. 
+
+* The most populus ELO bucekt segments generally show a small lift (approx avg. of 4). 
+    + This positive direction is similar to the slight average lift in Avg. ELO Diff Pre/Post reported in earlier tabs
+    + However, the bimodal / multimodal shape of the single match pre/post indicates this chagne is not uniform
+    
+```{r fig.width=9, fig.height=5}    
+g14 + geom_bar(stat = "identity") +
+  ggtitle("Overall AVG ELO Diff Between Abs. Value ELO Pre/Post") +
+  labs(x = "ELO Bucket", y = "Overall AVG ELO Diff Between Abs. Value ELO Pre/Post") +
+  theme(legend.position="bottom") +
+  theme(axis.text.x = element_text(size = 10, angle = 00))     
+```    
+   
+    
