@@ -8,11 +8,11 @@ library(ggplot2)
 library(plotly)
 
 driver <- dbDriver("PostgreSQL") 
-conn <- dbConnect(driver, host="superevilmegacorp.redshift.amplitude.com",
-                  port="5439",
-                  dbname="superevilmegacorp",
-                  user="superevilmegacorp",
-                  password="GQdPSadICW2lL5qCkS20U9Jk")
+conn <- dbConnect(driver, host="",
+                  port="",
+                  dbname="",
+                  user="",
+                  password="")
 
 # # Import Data 
 # mmrData_sql  <- "Select 

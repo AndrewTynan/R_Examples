@@ -8,11 +8,11 @@ library(dplyr)
 library(ggplot2)
 
 driver <- dbDriver("PostgreSQL") 
-conn <- dbConnect(driver, host="superevilmegacorp.redshift.amplitude.com",
-                  port="5439",
-                  dbname="superevilmegacorp",
-                  user="superevilmegacorp",
-                  password="GQdPSadICW2lL5qCkS20U9Jk")
+conn <- dbConnect(driver, host="",
+                  port="",
+                  dbname="",
+                  user="",
+                  password="")
 
 # Note: this adds player_elo, which is then bucketed and used as a grouping variable 
 # Doing it separately here to keep the elo_decay.R script from duplicating things / being messy 
